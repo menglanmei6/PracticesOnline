@@ -86,6 +86,7 @@ public class PracticesActivity extends BaseActivity implements PracticesFragment
         unbindService(connection);
     }
 
+/***/
     private void initView() {
         SearchView search = findViewById(R.id.bar_title_search);
         search.setQueryHint("关键字搜索");
