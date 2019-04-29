@@ -12,7 +12,7 @@ import java.util.UUID;
 public class Favorite extends BaseEntity implements Sqlitable {
     private UUID questionId;
     @Ignored
-    public static final String COL_QUESTION_ID="colQuestionId";
+    public static final String COL_QUESTION_ID="QuestionId";
 
     public UUID getQuestionId() {
         return questionId;

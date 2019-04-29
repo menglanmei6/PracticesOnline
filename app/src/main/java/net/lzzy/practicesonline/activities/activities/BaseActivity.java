@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import net.lzzy.practicesonline.R;
 import net.lzzy.practicesonline.activities.utils.AppUtils;
 
 /**
@@ -15,20 +14,22 @@ import net.lzzy.practicesonline.activities.utils.AppUtils;
  * Description:
  */
 public abstract class BaseActivity extends AppCompatActivity {
+    private Fragment fragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_splash);
-        AppUtils.addActivity(this);
         setContentView(getLayoutRes());
+        AppUtils.addActivity(this);
         FragmentManager manager=getSupportFragmentManager();
-        Fragment fragment=manager.findFragmentById(getContainerId());
+       fragment=manager.findFragmentById(getContainerId());
         if (fragment==null){
             fragment=createFragment();
             manager.beginTransaction().add(getContainerId(),fragment).commit();
         }
-
+    }
+    protected Fragment getFragment(){
+        return fragment;
     }
     @Override
     protected void onDestroy() {
@@ -45,8 +46,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onStop();
         AppUtils.setStopped(getLocalClassName());
     }
-    protected abstract int getLayoutRes();
 
+    protected abstract int getLayoutRes();
 
     protected abstract int getContainerId();
 

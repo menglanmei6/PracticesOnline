@@ -29,7 +29,6 @@ public abstract class BaseFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
        populate();
     }
-
     /**
      * 执行onCreateView中初始化试图组件、填充数据的任务
      */

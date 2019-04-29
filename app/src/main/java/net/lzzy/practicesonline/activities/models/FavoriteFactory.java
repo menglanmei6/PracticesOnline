@@ -41,27 +41,30 @@ public class FavoriteFactory {
         Favorite favorite = getByQuestion(questionId);
         return favorite == null ? null : repository.getDeleteString(favorite);
     }
-    public boolean isQuestionStarred(String questionId){
+
+    public boolean isQuestionStarred(String questionId) {
         try {
-            List<Favorite> favorites=repository.getByKeyword(questionId,
-                    new String[]{Favorite.COL_QUESTION_ID},true);
-            return favorites.size()>0;
-        }catch (IllegalAccessException|InstantiationException e){
+            List<Favorite> favorites = repository.getByKeyword(questionId,
+                    new String[]{Favorite.COL_QUESTION_ID}, true);
+            return favorites.size() > 0;
+        } catch (IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
             return false;
         }
     }
-    public void starQuestion(UUID questionId){
-        Favorite favorite=getByQuestion(questionId.toString());
-        if (favorite==null){
-            favorite=new Favorite();
+
+    public void starQuestion(UUID questionId) {
+        Favorite favorite = getByQuestion(questionId.toString());
+        if (favorite == null) {
+            favorite = new Favorite();
             favorite.setQuestionId(questionId);
             repository.insert(favorite);
         }
     }
-    public void cencelStarQuestion(UUID questionId){
-        Favorite favorite=getByQuestion(questionId.toString());
-        if (favorite!=null){
+
+    public void cencelStarQuestion(UUID questionId) {
+        Favorite favorite = getByQuestion(questionId.toString());
+        if (favorite != null) {
             repository.delete(favorite);
         }
     }

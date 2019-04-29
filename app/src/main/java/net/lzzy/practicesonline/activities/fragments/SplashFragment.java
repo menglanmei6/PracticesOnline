@@ -36,6 +36,7 @@ public class SplashFragment extends BaseFragment {
 
     public interface OnSplashFinishedListener{
         void cancelCount();
+
     }
 
     @Override

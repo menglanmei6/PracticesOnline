@@ -88,24 +88,24 @@ public class PracticeFactory {
         setPracticeDown(practiceId.toString());
     }
 
-    public boolean deletePracticeAndRelated(Practice practice) {
+    public boolean  deletePracticeAndRelated(Practice practice) {
         try {
             List<String> sqlActions = new ArrayList<>();
             sqlActions.add(repository.getDeleteString(practice));
             QuestionFactory factory = QuestionFactory.getInstance();
             List<Question> questions = factory.getByPractice(practice.getId().toString());
-            if (questions.size()>0) {
+            if (questions.size() > 0) {
                 for (Question q : questions) {
                     sqlActions.addAll(factory.getDeleteString(q));
                 }
             }
             repository.exeSqls(sqlActions);
-            if (!isPracticeInDb(practice)) {
-
+            if (isPracticeInDb(practice)) {
             }
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
+
     }
 }

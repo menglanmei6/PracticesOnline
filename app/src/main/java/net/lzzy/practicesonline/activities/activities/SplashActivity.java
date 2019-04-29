@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment;
 
 import net.lzzy.practicesonline.R;
 import net.lzzy.practicesonline.activities.constants.ApiConstants;
-import net.lzzy.practicesonline.activities.fragments.PracticesFragment;
 import net.lzzy.practicesonline.activities.fragments.SplashFragment;
 import net.lzzy.practicesonline.activities.utils.AbstractStaticHandler;
 import net.lzzy.practicesonline.activities.utils.AppUtils;
@@ -22,32 +21,64 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
-/**
- * Created by lzzy_gxy on 2019/4/10.
- * Description:
- */
+
 public class SplashActivity extends BaseActivity implements SplashFragment.OnSplashFinishedListener {
+
     public static final int WHAT_COUNTING = 0;
     public static final int WHAT_EXCEPTION = 1;
     public static final int WHAT_COUNT_DONE = 2;
     public static final int WHAT_SERVER_OFF = 3;
+    private TextView tvDisplay;
     private int seconds = 10;
-    private SplashHandler handler = new SplashHandler(this);
-    private TextView tvCount;
     private boolean isServerOn = true;
 
-    private static class SplashHandler extends AbstractStaticHandler<SplashActivity> {
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (!AppUtils.isNetworkAvailable()) {
+            new AlertDialog.Builder(this)
+                    .setMessage("网络不可用，是否继续")
+                    .setPositiveButton("退出", (dialog, which) -> AppUtils.exit())
+                    .setPositiveButton("确定", (dialog, which) -> gotoMain()).show();
+        } else {
+            ThreadPoolExecutor executor = AppUtils.getExecutor();
+            executor.execute(this::CountDown);
+            executor.execute(this::detectServerStatus);
+        }
+        tvDisplay = findViewById(R.id.activity_splash_tv_count_down);
+    }
 
-        SplashHandler(SplashActivity context) {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+    }
+
+    @Override
+    protected int getLayoutRes() {
+        return R.layout.activity_splash;
+    }
+
+
+    // region 倒计时
+    private CountHandler handler = new CountHandler(this);
+
+    private class CountHandler extends AbstractStaticHandler<SplashActivity> {
+        CountHandler(SplashActivity context) {
             super(context);
         }
 
+        /**
+         * @param msg
+         * @param activity
+         */
         @Override
         public void handleMessage(Message msg, SplashActivity activity) {
             switch (msg.what) {
+                //倒计时提示
                 case WHAT_COUNTING:
-                    String display = msg.obj + "秒";
-                    activity.tvCount.setText(display);
+                    String text = msg.obj.toString() + "秒";
+                    activity.tvDisplay.setText(text);
                     break;
                 case WHAT_COUNT_DONE:
                     if (activity.isServerOn) {
@@ -58,13 +89,13 @@ public class SplashActivity extends BaseActivity implements SplashFragment.OnSpl
                     new AlertDialog.Builder(activity)
                             .setMessage(msg.obj.toString())
                             .setPositiveButton("继续", (dialog, which) -> activity.gotoMain())
-                            .setNegativeButton("退出", (dialog, which) -> AppUtils.exit())
-                            .show();
+                            .setNegativeButton("退出", (dialog, which) -> AppUtils.exit()).show();
                     break;
+                //服务器探测提示
                 case WHAT_SERVER_OFF:
                     Activity context = AppUtils.getRunningActivity();
                     new AlertDialog.Builder(Objects.requireNonNull(context))
-                            .setMessage("服务器没有响应，是否继续?\n" + msg.obj)
+                            .setMessage("服务器没有响应，是否继续？\n" + msg.obj)
                             .setPositiveButton("确定", (dialog, which) -> {
                                 if (context instanceof SplashActivity) {
                                     ((SplashActivity) context).gotoMain();
@@ -80,26 +111,9 @@ public class SplashActivity extends BaseActivity implements SplashFragment.OnSpl
         }
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        tvCount = findViewById(R.id.activity_splash_tv_count_down);
-
-        if (!AppUtils.isNetworkAvailable()) {
-            new AlertDialog.Builder(this)
-                    .setMessage("网络不可用，是否继续")
-                    .setPositiveButton("退出", (dialog, which) -> AppUtils.exit())
-                    .setPositiveButton("确定", (dialog, which) -> gotoMain())
-                    .show();
-        } else {
-            ThreadPoolExecutor executor = AppUtils.getExecutor();
-            executor.execute(this::countDown);
-            executor.execute(this::detectServerStatus);
-        }
-    }
-
-    private void countDown() {
+    // endregion
+    // region实现计时
+    private void CountDown() {
         while (seconds >= 0) {
             Message message = handler.obtainMessage(WHAT_COUNTING);
             message.obj = seconds;
@@ -113,8 +127,9 @@ public class SplashActivity extends BaseActivity implements SplashFragment.OnSpl
         }
         handler.sendEmptyMessage(WHAT_COUNT_DONE);
     }
+    //endregion
 
-
+    //探测服务器
     private void detectServerStatus() {
         try {
             AppUtils.tryConnectServer(ApiConstants.URL_API);
@@ -124,19 +139,20 @@ public class SplashActivity extends BaseActivity implements SplashFragment.OnSpl
         }
     }
 
-    @Override
-    public void cancelCount() {
-        seconds = 0;
-    }
-
 
     public void gotoMain() {
-        startActivity(new Intent(this,PracticesActivity.class));
+        startActivity(new Intent(this, PracticesActivity.class));
         finish();
     }
 
     @Override
-    protected int getLayoutRes() {
+    public void cancelCount() {
+        seconds = 0;
+
+    }
+
+
+    protected int getLayoutRse() {
         return R.layout.activity_splash;
     }
 
@@ -149,6 +165,9 @@ public class SplashActivity extends BaseActivity implements SplashFragment.OnSpl
     protected Fragment createFragment() {
         return new SplashFragment();
     }
+
+
+
 
 
 }
