@@ -41,6 +41,7 @@
                 android:paddingEnd="15sp"
                 android:background="@drawable/btn_sector_green"
                 style="@style/WhiteBoldText"
+                android:visibility="gone"
                 android:text="看"/>
             <TextView android:id="@+id/activity_question_tv_commit"
                 android:layout_width="60dp"
@@ -50,6 +51,7 @@
                 android:paddingBottom="15dp"
                 android:background="@drawable/btn_sector_red"
                 style="@style/WhiteBoldText"
+                android:visibility="gone"
                 android:text="交"/>
         </FrameLayout>
 

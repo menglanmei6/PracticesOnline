@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -19,6 +20,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import net.lzzy.practicesonline.R;
 import net.lzzy.practicesonline.activities.fragments.QuestionFragment;
+import net.lzzy.practicesonline.activities.models.FavoriteFactory;
 import net.lzzy.practicesonline.activities.models.Question;
 import net.lzzy.practicesonline.activities.models.QuestionFactory;
 import net.lzzy.practicesonline.activities.models.UserCookies;
@@ -83,7 +85,7 @@ public class QuestionActivity extends AppCompatActivity {
                 UserCookies.getInstance().updateCurrentQuestion(practiceId,position);
                 UserCookies.getInstance().updateReadCount(questions.get(position).getId().toString());
 
-            }
+        }
 
             @Override
             public void onPageScrollStateChanged(int state) {
@@ -99,6 +101,31 @@ public class QuestionActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_PRACTICE_ID,practiceId);
         intent.putParcelableArrayListExtra(EXTRA_RESULT,(ArrayList<? extends Parcelable>) results);
         startActivityForResult(intent, REQUEST_CODE_RESULT);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //todo:返回查看数据 查看题目或收藏
+        if (data != null) {
+            if (data.getBooleanExtra(ResultActivity.COLLECTION, false)) {
+                FavoriteFactory favoriteFactory = FavoriteFactory.getInstance();
+                List<Question> cc = new ArrayList<>();
+                for (Question question : questions) {
+                    if (favoriteFactory.isQuestionStarred(question.getId().toString())) {
+                        cc.add(question);
+                    }
+                }
+                questions.clear();
+                questions.addAll(cc);
+                initDots();
+                adapter.notifyDataSetChanged();
+
+
+            } else {
+                pager.setCurrentItem(data.getIntExtra(ResultActivity.QUESTION, 0));
+            }
+        }
     }
 
     String info;
@@ -128,8 +155,9 @@ public class QuestionActivity extends AppCompatActivity {
             switch (msg.what){
                 case WHAT:
                     questionActivity.isCommitted=true;
-                    Toast.makeText(questionActivity, "提交成功", Toast.LENGTH_SHORT).show();
-                    break;
+                    UserCookies.getInstance().commitPractice(questionActivity.practiceId);
+                     Toast.makeText(questionActivity, "提交成功", Toast.LENGTH_SHORT).show();
+                   break;
                 case WHAT1:
                     Toast.makeText(questionActivity, "提交失败", Toast.LENGTH_SHORT).show();
                     break;
@@ -138,7 +166,6 @@ public class QuestionActivity extends AppCompatActivity {
                     break;
 
             }
-
         }
     }
     private void postResult(PracticeResult result) {
@@ -186,6 +213,8 @@ public class QuestionActivity extends AppCompatActivity {
             int drawable = i ==pos ? R.drawable.dot_fill_style: R.drawable.dot_style;
             dots[i].setBackgroundResource(drawable);
         }
+
+
     }
 
     private void initViews(){
@@ -193,6 +222,7 @@ public class QuestionActivity extends AppCompatActivity {
         tvCommit=findViewById(R.id.activity_question_tv_commit);
         tvHint=findViewById(R.id.activity_question_tv_hint);
         pager=findViewById(R.id.activity_question_pager);
+        isCommitted=UserCookies.getInstance().isPracticeCommitted(practiceId);
         if (isCommitted){
             tvCommit.setVisibility(View.GONE);
             tvView.setVisibility(View.VISIBLE);
@@ -221,6 +251,7 @@ public class QuestionActivity extends AppCompatActivity {
         practiceId= getIntent().getStringExtra(PracticesActivity.EXTRA_PRACTICE_ID);
         apiId=getIntent().getIntExtra(PracticesActivity.EXTRA_API_ID,-1);
         questions= QuestionFactory.getInstance().getByPractice(practiceId);
+        isCommitted=UserCookies.getInstance().isPracticeCommitted(practiceId);
         if (apiId <0||questions==null||questions.size()==0){
             Toast.makeText(this,"no questions",Toast.LENGTH_SHORT).show();
             finish();

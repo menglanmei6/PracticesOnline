@@ -50,6 +50,7 @@ public class AppUtils extends Application {
         activities.add(activity);
     }
     public static void removeActivity(Activity activity){
+
         activities.remove(activity);
     }
     public static void exit(){
